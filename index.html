@@ -9,230 +9,219 @@
 
 <style>
 :root{
- --bg:#F6F4F1;
- --card:#FFFFFF;
- --primary:#4A6F5E;
- --secondary:#4F7FA1;
- --warp:#4A6F5E;
- --weft:#4F7FA1;
- --text:#2E2E2E;
+  --bg:#F6F4F1;
+  --card:#FFFFFF;
+  --primary:#4A6F5E;
+  --secondary:#4F7FA1;
+  --accent:#C8B88A;
+  --warp:#4A6F5E;
+  --weft:#4F7FA1;
+  --text:#2E2E2E;
 }
 body{margin:0;font-family:Inter,sans-serif;background:var(--bg);color:var(--text);}
-.container{max-width:900px;margin:auto;padding:28px 18px;}
+.container{max-width:1100px;margin:auto;padding:32px 20px;}
 h1,h2{font-family:"Libre Baskerville",serif;color:var(--primary);}
-.card{background:var(--card);padding:20px;border-radius:10px;margin-bottom:22px;box-shadow:0 2px 6px rgba(0,0,0,.06);}
-label{font-size:.85rem;margin-top:10px;display:block;}
-select,input[type=number]{width:100%;padding:8px;border-radius:6px;border:1px solid #ddd;}
+.card{background:var(--card);padding:22px;border-radius:10px;margin-bottom:26px;box-shadow:0 2px 6px rgba(0,0,0,0.06);}
+label{font-size:.85rem;margin-top:12px;display:block;}
+select,input[type=number]{width:100%;padding:10px;border-radius:6px;border:1px solid #ddd;font-size:.95rem;}
 input[type=range]{width:100%;}
-button{margin-top:16px;padding:10px 18px;border-radius:6px;border:none;background:var(--primary);color:white;cursor:pointer;}
+button{margin-top:18px;padding:12px 20px;border-radius:6px;border:none;background:var(--primary);color:white;font-size:1rem;cursor:pointer;}
 button:hover{background:#3e5f51;}
 .small{font-size:.8rem;color:#666;}
-.answer{background:#eef3f1;padding:14px;border-radius:8px;margin-top:14px;}
-svg{max-width:260px;margin-top:8px;}
-.hidden{display:none;}
+table{width:100%;border-collapse:collapse;margin-top:12px;}
+th,td{border:1px solid #ddd;padding:8px;font-size:.85rem;text-align:left;}
+th{background:#eee;}
+svg{max-width:100%;height:auto;margin-top:12px;border:1px solid #ddd;border-radius:6px;background:#fafafa;}
 
 @media print{
- body *{visibility:hidden;}
- #finalPage, #finalPage *{visibility:visible;}
- #finalPage{position:absolute;left:0;top:0;width:100%;}
+ body{background:white;}
+ button{display:none;}
+ .card{box-shadow:none;border:1px solid #ccc;}
 }
 </style>
 </head>
 
 <body>
-
-<!-- ================= PAGE 1 ================= -->
-<div class="container" id="plannerPage">
+<div class="container">
 <h1>Rigid Heddle Weaving Planner</h1>
 
+<!-- YARN -->
 <div class="card">
-<h2>1. Yarn & Structure</h2>
+<h2>1. Yarn Selection</h2>
 
-<label>Yarn</label>
-<select id="yarn" onchange="applyYarn()"></select>
+<label>Warp Yarn</label>
+<select id="warpYarn"></select>
+
+<label>Weft Yarn</label>
+<select id="weftYarn"></select>
+
+<label>Package Size</label>
+<select id="package">
+  <option value="100">100 g ball</option>
+  <option value="250">250 g cone</option>
+  <option value="500">500 g cone</option>
+  <option value="1000">1 kg cone</option>
+</select>
+</div>
+
+<!-- STRUCTURE -->
+<div class="card">
+<h2>2. Structure & Draft</h2>
 
 <label>Weave Structure</label>
-<select id="structure" onchange="applyStructure()">
-<option value="plain">Plain weave</option>
-<option value="twill">2/2 Twill</option>
-<option value="krok">Krokbragd</option>
-<option value="double">Double weave</option>
+<select id="structure" onchange="updateDiagram()">
+  <option value="plain">Plain Weave</option>
+  <option value="twill">2/2 Twill</option>
+  <option value="krok">Krokbragd</option>
+  <option value="rep">Rep Weave</option>
+  <option value="lace">Lace Weave</option>
+  <option value="double">Double Weave</option>
 </select>
 
-<label>Reed setup</label>
-<select id="reed" onchange="checkReed()">
-<option value="single">Single reed</option>
-<option value="double">Two reeds</option>
-</select>
-
-<div id="draftDiagram"></div>
+<div id="diagram"></div>
 
 <p class="small">
-Draft shown is schematic for rigid heddle planning.
+Diagrams show warp (green) and weft (blue) interaction for rigid heddle planning.
 </p>
 </div>
 
+<!-- CALC -->
 <div class="card">
-<h2>2. Size</h2>
+<h2>3. Size & Yarn Calculation</h2>
 
-<label>Finished width (inches)</label>
+<label>Finished Width (inches)</label>
 <input id="width" type="number">
 
-<label>Finished length (inches)</label>
+<label>Finished Length (inches)</label>
 <input id="length" type="number">
 
-<label>EPI (suggested from yarn, editable)</label>
-<input id="epi" type="number">
+<label>EPI (editable)</label>
+<input id="epi" type="number" value="12">
 
-<label>Take-up + shrinkage (%)</label>
+<label>Take-up + Shrinkage (%)</label>
 <input id="shrink" type="number" value="12">
 
-<label>Loom waste (inches)</label>
+<label>Loom Waste (inches)</label>
 <input id="waste" type="number" value="24">
 
-<label>Sampling allowance: <span id="sampleVal">10%</span></label>
-<input type="range" id="sample" min="0" max="30" value="10"
- oninput="sampleVal.textContent=this.value+'%'">
+<label>Sampling Allowance: <span id="sampleVal">10%</span></label>
+<input id="sampling" type="range" min="0" max="30" value="10" oninput="sampleVal.textContent=this.value+'%'">
 
 <button onclick="calculate()">Calculate Yarn</button>
+<button onclick="window.print()">Save / Print PDF</button>
 
-<div class="answer" id="answerBox"></div>
-
-<button onclick="showFinal()">View Final Project Plan</button>
-</div>
+<div id="result"></div>
 </div>
 
-<!-- ================= PAGE 2 ================= -->
-<div class="container hidden" id="finalPage">
-<h1>Final Weaving Plan</h1>
-
+<!-- COMPARISON -->
 <div class="card">
-<p><b>Yarn:</b> <span id="fYarn"></span></p>
-<p><b>Structure:</b> <span id="fStructure"></span></p>
-<p><b>Reed setup:</b> <span id="fReed"></span></p>
-<p><b>EPI:</b> <span id="fEpi"></span></p>
-
-<p><b>Total warp required:</b> <span id="fWarp"></span> m</p>
-<p><b>Total weft required:</b> <span id="fWeft"></span> m</p>
-<p><b>Total yarn required:</b> <span id="fTotal"></span> m</p>
-
-<div id="finalDiagram"></div>
-
-<button onclick="window.print()">Print Project Sheet</button>
-<button onclick="back()">Back to Planner</button>
+<h2>Yarn Comparison</h2>
+<table id="comparison"></table>
 </div>
 </div>
 
 <script>
-/* ---------------- YARN DATA ---------------- */
-const yarns={
-"Mercerised Cotton 5/2":{epi:18},
-"Mercerised Cotton 10/2":{epi:24},
-"Mercerised Cotton 20/2":{epi:30},
-"Natural Dyed Cotton 5/2":{epi:16},
-"Yoga Cotton 8/2":{epi:14},
-"Cotton Linen 8/2":{epi:14},
-"Hemp Rich Yarn":{epi:12},
-"Cotton Sportweight":{epi:10},
-"Cotton DK":{epi:8},
-"Merino Cashmere 16/2":{epi:18},
-"Cashmere 16/2":{epi:18},
-"Mulberry Silk 16/2":{epi:20}
-};
+/* YARN DATA — industry standard estimates */
+const yarns=[
+{name:"Mercerised Cotton 5/2",m100:840,warp:true,weft:true},
+{name:"Mercerised Cotton 10/2",m100:1680,warp:true,weft:true},
+{name:"Mercerised Cotton 20/2",m100:3360,warp:true,weft:true},
+{name:"Natural Dyed Cotton 5/2",m100:820,warp:true,weft:true},
+{name:"Yoga Cotton 8/2",m100:700,warp:true,weft:true},
+{name:"Cotton Linen 8/2",m100:760,warp:true,weft:true},
+{name:"Hemp Rich Yarn",m100:600,warp:true,weft:true},
+{name:"Slub Cotton 10/2",m100:900,warp:false,weft:true},
+{name:"Cotton Sportweight",m100:350,warp:true,weft:true},
+{name:"Cotton DK (8 ply)",m100:250,warp:true,weft:true},
+{name:"Merino Cashmere 16/2",m100:400,warp:true,weft:true},
+{name:"Cashmere 16/2",m100:420,warp:true,weft:true},
+{name:"Mulberry Silk 16/2",m100:500,warp:true,weft:true},
+{name:"Ashford Merino Superwash 4 ply",m100:380,warp:true,weft:true},
+{name:"Ashford Merino Superwash 8 ply",m100:200,warp:true,weft:true}
+];
 
-const ppiFactor={
-plain:1,
-twill:1,
-krok:1.2,
-double:2
-};
+const ppiFactor={plain:1,twill:1,krok:1.2,rep:1.6,lace:0.9,double:2};
 
-/* ---------------- INIT ---------------- */
-const yarnSel=document.getElementById("yarn");
-Object.keys(yarns).forEach(y=>yarnSel.add(new Option(y,y)));
-
-applyYarn();
-applyStructure();
-
-/* ---------------- LOGIC ---------------- */
-function applyYarn(){
- epi.value=yarns[yarn.value].epi;
+/* Populate yarns */
+function populate(){
+warpYarn.innerHTML="";weftYarn.innerHTML="";
+yarns.forEach((y,i)=>{
+ if(y.warp){warpYarn.add(new Option(y.name,i));}
+ if(y.weft){weftYarn.add(new Option(y.name,i));}
+});
+buildTable();
+updateDiagram();
 }
 
-function applyStructure(){
- updateDraft();
- checkReed();
+/* SVG diagrams */
+function updateDiagram(){
+const s=structure.value;
+let svg="";
+if(s==="plain")svg=grid([1,0,1,0],[0,1,0,1]);
+if(s==="twill")svg=grid([1,1,0,0],[0,1,1,0]);
+if(s==="krok")svg=grid([1,0,1,0],[0,0,1,1]);
+if(s==="rep")svg=grid([1,0,1,0],[0,0,0,1]);
+if(s==="lace")svg=grid([1,0,0,1],[0,1,1,0]);
+if(s==="double")svg=grid([1,0,1,0],[1,0,1,0],true);
+diagram.innerHTML=svg;
 }
 
-function checkReed(){
- if(reed.value==="double" && !["twill","double","krok"].includes(structure.value)){
-  alert("Two reeds are typically used only for twill, double weave or krokbragd.");
-  reed.value="single";
+function grid(warp,weft,double=false){
+let size=4,cell=40;
+let h=double?cell*6:cell*4;
+let svg=`<svg viewBox="0 0 ${cell*size} ${h}">`;
+for(let y=0;y<(double?6:4);y++){
+ for(let x=0;x<4;x++){
+  let isWarp=(y%2===0?warp[x]:weft[x]);
+  let color=isWarp?"var(--warp)":"var(--weft)";
+  svg+=`<rect x="${x*cell}" y="${y*cell}" width="${cell}" height="${cell}" fill="${color}" opacity="0.85"/>`;
  }
 }
-
-function updateDraft(){
- let svg="<svg viewBox='0 0 120 120'>";
- for(let y=0;y<4;y++){
-  for(let x=0;x<4;x++){
-   let on=(structure.value==="plain")?((x+y)%2):(structure.value==="twill")?(x>=y):true;
-   svg+=`<rect x="${x*30}" y="${y*30}" width="30" height="30"
-    fill="${on?'var(--warp)':'var(--weft)'}"/>`;
-  }
- }
- svg+="</svg>";
- draftDiagram.innerHTML=svg;
+return svg+"</svg>";
 }
 
-/* ---------------- CALCULATION ---------------- */
+/* Calculation */
 function calculate(){
- const widthIn=+width.value;
- const lengthIn=+length.value;
- const epiVal=+epi.value;
- const shrink=+shrink.value/100;
- const waste=+waste.value;
- const sample=+sample.value/100;
+const widthIn=+width.value;
+const lengthIn=+length.value;
+const epi=+epi.value;
+const shrink=+shrink.value/100;
+const waste=+waste.value;
+const sample=+sampling.value/100;
 
- const warpEnds=widthIn*epiVal;
- const warpLen=((lengthIn*(1+shrink))+waste)*0.0254;
- const warpM=warpEnds*warpLen;
+const warpY=yarns[warpYarn.value];
+const weftY=yarns[weftYarn.value];
 
- const ppi=epiVal*ppiFactor[structure.value];
- const weftM=(lengthIn*(1+shrink)*ppi*widthIn*(1+shrink))*0.0254;
+const warpEnds=widthIn*epi;
+const warpLen=((lengthIn*(1+shrink))+waste)*0.0254;
+let warpM=warpEnds*warpLen;
 
- const total=(warpM+weftM)*(1+sample);
+const ppi=epi*ppiFactor[structure.value];
+const weftPicks=lengthIn*(1+shrink)*ppi;
+let weftM=(weftPicks*(widthIn*(1+shrink)))*0.0254;
 
- answerBox.innerHTML=`
- <b>Warp:</b> ${warpM.toFixed(1)} m<br>
- <b>Weft:</b> ${weftM.toFixed(1)} m<br>
- <b>Total (incl. sampling):</b> ${total.toFixed(1)} m
- `;
+let total=(warpM+weftM)*(1+sample);
+const pkgM=(package.value/100)*warpY.m100;
 
- window.finalData={warpM,weftM,total};
+result.innerHTML=`
+<p><b>Warp:</b> ${warpM.toFixed(1)} m</p>
+<p><b>Weft:</b> ${weftM.toFixed(1)} m</p>
+<p><b>Sampling allowance:</b> ${(sample*100).toFixed(0)}%</p>
+<p><b>Total yarn required:</b> ${total.toFixed(1)} m</p>
+<p><b>Packages needed:</b> ${(total/pkgM).toFixed(2)}</p>
+`;
 }
 
-/* ---------------- FINAL PAGE ---------------- */
-function showFinal(){
- if(!window.finalData){alert("Please calculate first.");return;}
- plannerPage.classList.add("hidden");
- finalPage.classList.remove("hidden");
-
- fYarn.textContent=yarn.value;
- fStructure.textContent=structure.options[structure.selectedIndex].text;
- fReed.textContent=reed.value;
- fEpi.textContent=epi.value;
- fWarp.textContent=finalData.warpM.toFixed(1);
- fWeft.textContent=finalData.weftM.toFixed(1);
- fTotal.textContent=finalData.total.toFixed(1);
-
- finalDiagram.innerHTML=draftDiagram.innerHTML;
+/* Table */
+function buildTable(){
+let t="<tr><th>Yarn</th><th>m / 100g</th><th>Warp</th><th>Weft</th></tr>";
+yarns.forEach(y=>{
+t+=`<tr><td>${y.name}</td><td>${y.m100}</td><td>${y.warp?"✔":"—"}</td><td>${y.weft?"✔":"—"}</td></tr>`;
+});
+comparison.innerHTML=t;
 }
 
-function back(){
- finalPage.classList.add("hidden");
- plannerPage.classList.remove("hidden");
-}
+populate();
 </script>
 </body>
 </html>
-
