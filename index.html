@@ -9,33 +9,34 @@
 
 <style>
 :root{
-  --bg:#F6F4F1;
-  --card:#FFFFFF;
-  --primary:#4A6F5E;
-  --secondary:#4F7FA1;
-  --accent:#C8B88A;
-  --warp:#4A6F5E;
-  --weft:#4F7FA1;
-  --text:#2E2E2E;
+ --bg:#F6F4F1;
+ --card:#FFFFFF;
+ --primary:#4A6F5E;
+ --secondary:#4F7FA1;
+ --accent:#C8B88A;
+ --warp:#4A6F5E;
+ --weft:#4F7FA1;
+ --reed2:#C8B88A;
+ --text:#2E2E2E;
 }
 body{margin:0;font-family:Inter,sans-serif;background:var(--bg);color:var(--text);}
 .container{max-width:1100px;margin:auto;padding:32px 20px;}
 h1,h2{font-family:"Libre Baskerville",serif;color:var(--primary);}
-.card{background:var(--card);padding:22px;border-radius:10px;margin-bottom:26px;box-shadow:0 2px 6px rgba(0,0,0,0.06);}
+.card{background:var(--card);padding:22px;border-radius:10px;margin-bottom:26px;box-shadow:0 2px 6px rgba(0,0,0,.06);}
 label{font-size:.85rem;margin-top:12px;display:block;}
-select,input[type=number]{width:100%;padding:10px;border-radius:6px;border:1px solid #ddd;font-size:.95rem;}
+select,input[type=number]{width:100%;padding:10px;border-radius:6px;border:1px solid #ddd;}
 input[type=range]{width:100%;}
-button{margin-top:18px;padding:12px 20px;border-radius:6px;border:none;background:var(--primary);color:white;font-size:1rem;cursor:pointer;}
+button{margin-top:18px;padding:12px 20px;border-radius:6px;border:none;background:var(--primary);color:white;cursor:pointer;}
 button:hover{background:#3e5f51;}
 .small{font-size:.8rem;color:#666;}
+svg{max-width:100%;margin-top:10px;border:1px solid #ddd;border-radius:6px;background:#fafafa;}
 table{width:100%;border-collapse:collapse;margin-top:12px;}
-th,td{border:1px solid #ddd;padding:8px;font-size:.85rem;text-align:left;}
+th,td{border:1px solid #ddd;padding:8px;font-size:.85rem;}
 th{background:#eee;}
-svg{max-width:100%;height:auto;margin-top:12px;border:1px solid #ddd;border-radius:6px;background:#fafafa;}
 
 @media print{
- body{background:white;}
  button{display:none;}
+ body{background:white;}
  .card{box-shadow:none;border:1px solid #ccc;}
 }
 </style>
@@ -55,39 +56,48 @@ svg{max-width:100%;height:auto;margin-top:12px;border:1px solid #ddd;border-radi
 <label>Weft Yarn</label>
 <select id="weftYarn"></select>
 
-<label>Package Size</label>
-<select id="package">
-  <option value="100">100 g ball</option>
-  <option value="250">250 g cone</option>
-  <option value="500">500 g cone</option>
-  <option value="1000">1 kg cone</option>
-</select>
+<p class="small">
+Slub cotton is restricted to weft. Yarn lengths are planning estimates — sampling recommended.
+</p>
 </div>
 
 <!-- STRUCTURE -->
 <div class="card">
-<h2>2. Structure & Draft</h2>
+<h2>2. Structure & Drafting</h2>
 
 <label>Weave Structure</label>
-<select id="structure" onchange="updateDiagram()">
-  <option value="plain">Plain Weave</option>
-  <option value="twill">2/2 Twill</option>
-  <option value="krok">Krokbragd</option>
-  <option value="rep">Rep Weave</option>
-  <option value="lace">Lace Weave</option>
-  <option value="double">Double Weave</option>
+<select id="structure" onchange="updateDraftDiagram()">
+<option value="plain">Plain Weave</option>
+<option value="twill">2/2 Twill</option>
+<option value="krok">Krokbragd</option>
+<option value="rep">Rep Weave</option>
+<option value="lace">Lace Weave</option>
+<option value="double">Double Weave</option>
 </select>
 
-<div id="diagram"></div>
+<div id="draftDiagram"></div>
+</div>
+
+<!-- SLOT & HOLE -->
+<div class="card">
+<h2>3. Slot & Hole Planning</h2>
+
+<label>Reed Configuration</label>
+<select id="reedConfig" onchange="updateReedDiagram()">
+<option value="single">Single Reed</option>
+<option value="double">Two Reeds (Offset)</option>
+</select>
+
+<div id="reedDiagram"></div>
 
 <p class="small">
-Diagrams show warp (green) and weft (blue) interaction for rigid heddle planning.
+Slot-and-hole planning shown for balanced warps. Multi-reed diagrams show offset threading.
 </p>
 </div>
 
 <!-- CALC -->
 <div class="card">
-<h2>3. Size & Yarn Calculation</h2>
+<h2>4. Size & Yarn Calculation</h2>
 
 <label>Finished Width (inches)</label>
 <input id="width" type="number">
@@ -95,6 +105,142 @@ Diagrams show warp (green) and weft (blue) interaction for rigid heddle planning
 <label>Finished Length (inches)</label>
 <input id="length" type="number">
 
-<label>EPI (editable)</label>
-<input id="epi" type="number" value
+<label>Reed / EPI (editable)</label>
+<input id="epi" type="number" value="12">
 
+<label>Take-up + Shrinkage (%)</label>
+<input id="shrink" type="number" value="12">
+
+<label>Loom Waste (inches)</label>
+<input id="waste" type="number" value="24">
+
+<label>Sampling Allowance: <span id="sampleVal">10%</span></label>
+<input id="sampling" type="range" min="0" max="30" value="10"
+ oninput="sampleVal.textContent=this.value+'%'">
+
+<button onclick="calculate()">Calculate Yarn</button>
+<button onclick="window.print()">Save / Print PDF</button>
+
+<div id="result"></div>
+</div>
+
+<!-- COMPARISON -->
+<div class="card">
+<h2>Yarn Comparison</h2>
+<table id="comparison"></table>
+</div>
+</div>
+
+<script>
+/* ---------------- YARN DATABASE ---------------- */
+const yarns=[
+{name:"Mercerised Cotton 5/2",m100:840,warp:true,weft:true},
+{name:"Mercerised Cotton 10/2",m100:1680,warp:true,weft:true},
+{name:"Mercerised Cotton 20/2",m100:3360,warp:true,weft:true},
+{name:"Natural Dyed Cotton 5/2",m100:820,warp:true,weft:true},
+{name:"Yoga Cotton 8/2",m100:700,warp:true,weft:true},
+{name:"Cotton Linen 8/2",m100:760,warp:true,weft:true},
+{name:"Hemp Rich Yarn",m100:600,warp:true,weft:true},
+{name:"Slub Cotton 10/2 (Weft Only)",m100:900,warp:false,weft:true},
+{name:"Cotton Sportweight",m100:350,warp:true,weft:true},
+{name:"Cotton DK (8 ply)",m100:250,warp:true,weft:true},
+{name:"Merino Cashmere 16/2",m100:400,warp:true,weft:true},
+{name:"Cashmere 16/2",m100:420,warp:true,weft:true},
+{name:"Mulberry Silk 16/2",m100:500,warp:true,weft:true},
+{name:"Ashford Merino Superwash 4 ply",m100:380,warp:true,weft:true},
+{name:"Ashford Merino Superwash 8 ply",m100:200,warp:true,weft:true}
+];
+
+const ppiFactor={plain:1,twill:1,krok:1.2,rep:1.6,lace:0.9,double:2};
+
+/* ---------------- INIT ---------------- */
+function populate(){
+warpYarn.innerHTML="";weftYarn.innerHTML="";
+yarns.forEach((y,i)=>{
+ if(y.warp) warpYarn.add(new Option(y.name,i));
+ if(y.weft) weftYarn.add(new Option(y.name,i));
+});
+buildTable();
+updateDraftDiagram();
+updateReedDiagram();
+}
+
+/* ---------------- DRAFT DIAGRAM ---------------- */
+function updateDraftDiagram(){
+const s=structure.value;
+const pattern={
+plain:[[1,0],[0,1]],
+twill:[[1,1,0],[0,1,1]],
+krok:[[1,0,1],[0,0,1]],
+rep:[[1,0],[0,0]],
+lace:[[1,0,0,1],[0,1,1,0]],
+double:[[1,0],[1,0]]
+}[s];
+
+let rows=s==="double"?6:4, cols=4, size=40;
+let svg=`<svg viewBox="0 0 ${cols*size} ${rows*size}">`;
+
+for(let y=0;y<rows;y++){
+ for(let x=0;x<cols;x++){
+  let on=pattern[y%pattern.length][x%pattern[0].length];
+  let color=on?"var(--warp)":"var(--weft)";
+  svg+=`<rect x="${x*size}" y="${y*size}" width="${size}" height="${size}" fill="${color}" opacity="0.85"/>`;
+ }
+}
+draftDiagram.innerHTML=svg+"</svg>";
+}
+
+/* ---------------- SLOT & HOLE DIAGRAM ---------------- */
+function updateReedDiagram(){
+let svg=`<svg viewBox="0 0 320 80">`;
+for(let i=0;i<8;i++){
+ let x=10+i*38;
+ svg+=`<rect x="${x}" y="20" width="18" height="40" fill="var(--warp)"/>`;
+ svg+=`<circle cx="${x+28}" cy="40" r="8" fill="var(--weft)"/>`;
+ if(reedConfig.value==="double"){
+  svg+=`<rect x="${x+10}" y="5" width="18" height="15" fill="var(--reed2)" opacity="0.85"/>`;
+ }
+}
+reedDiagram.innerHTML=svg+"</svg>";
+}
+
+/* ---------------- CALCULATION ---------------- */
+function calculate(){
+const widthIn=+width.value;
+const lengthIn=+length.value;
+const epi=+epi.value;
+const shrink=+shrink.value/100;
+const waste=+waste.value;
+const sample=+sampling.value/100;
+
+const warpEnds=widthIn*epi;
+const warpLen=((lengthIn*(1+shrink))+waste)*0.0254;
+let warpM=warpEnds*warpLen;
+
+const ppi=epi*ppiFactor[structure.value];
+const weftPicks=lengthIn*(1+shrink)*ppi;
+let weftM=(weftPicks*(widthIn*(1+shrink)))*0.0254;
+
+let total=(warpM+weftM)*(1+sample);
+
+result.innerHTML=`
+<p><b>Warp:</b> ${warpM.toFixed(1)} m</p>
+<p><b>Weft:</b> ${weftM.toFixed(1)} m</p>
+<p><b>Sampling allowance:</b> ${(sample*100).toFixed(0)}%</p>
+<p><b>Total yarn required:</b> ${total.toFixed(1)} m</p>
+`;
+}
+
+/* ---------------- TABLE ---------------- */
+function buildTable(){
+let t="<tr><th>Yarn</th><th>m / 100g</th><th>Warp</th><th>Weft</th></tr>";
+yarns.forEach(y=>{
+t+=`<tr><td>${y.name}</td><td>${y.m100}</td><td>${y.warp?"✔":"—"}</td><td>${y.weft?"✔":"—"}</td></tr>`;
+});
+comparison.innerHTML=t;
+}
+
+populate();
+</script>
+</body>
+</html>
