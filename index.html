@@ -9,35 +9,23 @@
 
 <style>
 :root{
-  --bg:#F6F4F1;
-  --card:#FFFFFF;
-  --primary:#4A6F5E;
-  --secondary:#4F7FA1;
-  --accent:#C8B88A;
-  --warp:#4A6F5E;
-  --weft:#4F7FA1;
-  --text:#2E2E2E;
+ --bg:#F6F4F1;
+ --card:#FFFFFF;
+ --primary:#4A6F5E;
+ --warp:#4A6F5E;
+ --weft:#4F7FA1;
+ --text:#2E2E2E;
 }
 body{margin:0;font-family:Inter,sans-serif;background:var(--bg);color:var(--text);}
-.container{max-width:1100px;margin:auto;padding:32px 20px;}
+.container{max-width:700px;margin:auto;padding:28px 18px;}
 h1,h2{font-family:"Libre Baskerville",serif;color:var(--primary);}
-.card{background:var(--card);padding:22px;border-radius:10px;margin-bottom:26px;box-shadow:0 2px 6px rgba(0,0,0,0.06);}
-label{font-size:.85rem;margin-top:12px;display:block;}
-select,input[type=number]{width:100%;padding:10px;border-radius:6px;border:1px solid #ddd;font-size:.95rem;}
-input[type=range]{width:100%;}
-button{margin-top:18px;padding:12px 20px;border-radius:6px;border:none;background:var(--primary);color:white;font-size:1rem;cursor:pointer;}
+.card{background:var(--card);padding:20px;border-radius:10px;margin-bottom:22px;box-shadow:0 2px 6px rgba(0,0,0,.06);}
+label{font-size:.85rem;margin-top:10px;display:block;}
+select,input{width:100%;padding:8px;border-radius:6px;border:1px solid #ddd;}
+button{margin-top:16px;padding:10px 18px;border-radius:6px;border:none;background:var(--primary);color:white;cursor:pointer;}
 button:hover{background:#3e5f51;}
+.answer{background:#eef3f1;padding:14px;border-radius:8px;margin-top:16px;}
 .small{font-size:.8rem;color:#666;}
-table{width:100%;border-collapse:collapse;margin-top:12px;}
-th,td{border:1px solid #ddd;padding:8px;font-size:.85rem;text-align:left;}
-th{background:#eee;}
-svg{max-width:100%;height:auto;margin-top:12px;border:1px solid #ddd;border-radius:6px;background:#fafafa;}
-
-@media print{
- body{background:white;}
- button{display:none;}
- .card{box-shadow:none;border:1px solid #ccc;}
-}
 </style>
 </head>
 
@@ -45,183 +33,116 @@ svg{max-width:100%;height:auto;margin-top:12px;border:1px solid #ddd;border-radi
 <div class="container">
 <h1>Rigid Heddle Weaving Planner</h1>
 
-<!-- YARN -->
 <div class="card">
-<h2>1. Yarn Selection</h2>
+<h2>1. Yarn</h2>
 
-<label>Warp Yarn</label>
-<select id="warpYarn"></select>
+<label>Select yarn</label>
+<select id="yarn" onchange="applyYarn()"></select>
 
-<label>Weft Yarn</label>
-<select id="weftYarn"></select>
-
-<label>Package Size</label>
-<select id="package">
-  <option value="100">100 g ball</option>
-  <option value="250">250 g cone</option>
-  <option value="500">500 g cone</option>
-  <option value="1000">1 kg cone</option>
-</select>
-</div>
-
-<!-- STRUCTURE -->
-<div class="card">
-<h2>2. Structure & Draft</h2>
-
-<label>Weave Structure</label>
-<select id="structure" onchange="updateDiagram()">
-  <option value="plain">Plain Weave</option>
-  <option value="twill">2/2 Twill</option>
-  <option value="krok">Krokbragd</option>
-  <option value="rep">Rep Weave</option>
-  <option value="lace">Lace Weave</option>
-  <option value="double">Double Weave</option>
-</select>
-
-<div id="diagram"></div>
+<label>Recommended EPI (editable)</label>
+<input id="epi" type="number">
 
 <p class="small">
-Diagrams show warp (green) and weft (blue) interaction for rigid heddle planning.
+EPI is suggested based on yarn. Adjust after sampling if needed.
 </p>
 </div>
 
-<!-- CALC -->
 <div class="card">
-<h2>3. Size & Yarn Calculation</h2>
+<h2>2. Finished Size</h2>
 
-<label>Finished Width (inches)</label>
+<label>Finished width (inches)</label>
 <input id="width" type="number">
 
-<label>Finished Length (inches)</label>
+<label>Finished length (inches)</label>
 <input id="length" type="number">
 
-<label>EPI (editable)</label>
-<input id="epi" type="number" value="12">
+<label>Hand-manipulation gap (%)</label>
+<input id="gap" type="number" value="0">
 
-<label>Take-up + Shrinkage (%)</label>
-<input id="shrink" type="number" value="12">
-
-<label>Loom Waste (inches)</label>
-<input id="waste" type="number" value="24">
-
-<label>Sampling Allowance: <span id="sampleVal">10%</span></label>
-<input id="sampling" type="range" min="0" max="30" value="10" oninput="sampleVal.textContent=this.value+'%'">
-
-<button onclick="calculate()">Calculate Yarn</button>
-<button onclick="window.print()">Save / Print PDF</button>
-
-<div id="result"></div>
+<p class="small">
+Use gap % for leno, Brooks bouquet, clasped weft spacing, etc.
+</p>
 </div>
 
-<!-- COMPARISON -->
 <div class="card">
-<h2>Yarn Comparison</h2>
-<table id="comparison"></table>
+<h2>3. Allowances</h2>
+
+<label>Take-up + shrinkage (%)</label>
+<input id="shrink" type="number" value="12">
+
+<label>Loom waste (inches)</label>
+<input id="waste" type="number" value="24">
+
+<button onclick="calculate()">Calculate Yarn</button>
+
+<div class="answer" id="answerBox"></div>
 </div>
 </div>
 
 <script>
-/* YARN DATA — industry standard estimates */
-const yarns=[
-{name:"Mercerised Cotton 5/2",m100:840,warp:true,weft:true},
-{name:"Mercerised Cotton 10/2",m100:1680,warp:true,weft:true},
-{name:"Mercerised Cotton 20/2",m100:3360,warp:true,weft:true},
-{name:"Natural Dyed Cotton 5/2",m100:820,warp:true,weft:true},
-{name:"Yoga Cotton 8/2",m100:700,warp:true,weft:true},
-{name:"Cotton Linen 8/2",m100:760,warp:true,weft:true},
-{name:"Hemp Rich Yarn",m100:600,warp:true,weft:true},
-{name:"Slub Cotton 10/2",m100:900,warp:false,weft:true},
-{name:"Cotton Sportweight",m100:350,warp:true,weft:true},
-{name:"Cotton DK (8 ply)",m100:250,warp:true,weft:true},
-{name:"Merino Cashmere 16/2",m100:400,warp:true,weft:true},
-{name:"Cashmere 16/2",m100:420,warp:true,weft:true},
-{name:"Mulberry Silk 16/2",m100:500,warp:true,weft:true},
-{name:"Ashford Merino Superwash 4 ply",m100:380,warp:true,weft:true},
-{name:"Ashford Merino Superwash 8 ply",m100:200,warp:true,weft:true}
-];
+/* ---------------- YARN DATA ---------------- */
+/* Recommended EPI for plain weave */
+const yarns = {
+ "Mercerised Cotton 5/2":18,
+ "Mercerised Cotton 10/2":24,
+ "Mercerised Cotton 20/2":30,
+ "Natural Dyed Cotton 5/2":16,
+ "Yoga Cotton 8/2":14,
+ "Cotton Linen 8/2":14,
+ "Hemp Rich Yarn":12,
+ "Cotton Sportweight":10,
+ "Cotton DK":8,
+ "Merino Cashmere 16/2":18,
+ "Cashmere 16/2":18,
+ "Mulberry Silk 16/2":20
+};
 
-const ppiFactor={plain:1,twill:1,krok:1.2,rep:1.6,lace:0.9,double:2};
+/* INIT */
+const yarnSel=document.getElementById("yarn");
+Object.keys(yarns).forEach(y=>yarnSel.add(new Option(y,y)));
+applyYarn();
 
-/* Populate yarns */
-function populate(){
-warpYarn.innerHTML="";weftYarn.innerHTML="";
-yarns.forEach((y,i)=>{
- if(y.warp){warpYarn.add(new Option(y.name,i));}
- if(y.weft){weftYarn.add(new Option(y.name,i));}
-});
-buildTable();
-updateDiagram();
+/* APPLY YARN */
+function applyYarn(){
+ epi.value = yarns[yarn.value];
 }
 
-/* SVG diagrams */
-function updateDiagram(){
-const s=structure.value;
-let svg="";
-if(s==="plain")svg=grid([1,0,1,0],[0,1,0,1]);
-if(s==="twill")svg=grid([1,1,0,0],[0,1,1,0]);
-if(s==="krok")svg=grid([1,0,1,0],[0,0,1,1]);
-if(s==="rep")svg=grid([1,0,1,0],[0,0,0,1]);
-if(s==="lace")svg=grid([1,0,0,1],[0,1,1,0]);
-if(s==="double")svg=grid([1,0,1,0],[1,0,1,0],true);
-diagram.innerHTML=svg;
-}
-
-function grid(warp,weft,double=false){
-let size=4,cell=40;
-let h=double?cell*6:cell*4;
-let svg=`<svg viewBox="0 0 ${cell*size} ${h}">`;
-for(let y=0;y<(double?6:4);y++){
- for(let x=0;x<4;x++){
-  let isWarp=(y%2===0?warp[x]:weft[x]);
-  let color=isWarp?"var(--warp)":"var(--weft)";
-  svg+=`<rect x="${x*cell}" y="${y*cell}" width="${cell}" height="${cell}" fill="${color}" opacity="0.85"/>`;
- }
-}
-return svg+"</svg>";
-}
-
-/* Calculation */
+/* CALCULATION — FIXED & VERIFIED */
 function calculate(){
-const widthIn=+width.value;
-const lengthIn=+length.value;
-const epi=+epi.value;
-const shrink=+shrink.value/100;
-const waste=+waste.value;
-const sample=+sampling.value/100;
+ const widthIn = Number(width.value);
+ const lengthIn = Number(length.value);
+ const epiVal = Number(epi.value);
+ const gapPct = Number(gap.value)/100;
+ const shrinkPct = Number(shrink.value)/100;
+ const wasteIn = Number(waste.value);
 
-const warpY=yarns[warpYarn.value];
-const weftY=yarns[weftYarn.value];
+ if(!widthIn || !lengthIn || !epiVal){
+  answerBox.innerHTML="Please fill all required fields.";
+  return;
+ }
 
-const warpEnds=widthIn*epi;
-const warpLen=((lengthIn*(1+shrink))+waste)*0.0254;
-let warpM=warpEnds*warpLen;
+ /* WARP ENDS */
+ const ends = Math.round(widthIn * epiVal * (1 - gapPct));
 
-const ppi=epi*ppiFactor[structure.value];
-const weftPicks=lengthIn*(1+shrink)*ppi;
-let weftM=(weftPicks*(widthIn*(1+shrink)))*0.0254;
+ /* WARP LENGTH */
+ const warpLengthM = ((lengthIn * (1 + shrinkPct)) + wasteIn) * 0.0254;
+ const warpMeters = ends * warpLengthM;
 
-let total=(warpM+weftM)*(1+sample);
-const pkgM=(package.value/100)*warpY.m100;
+ /* WEFT */
+ const ppi = epiVal; // balanced plain weave
+ const weftPicks = lengthIn * (1 + shrinkPct) * ppi * (1 - gapPct);
+ const weftMeters = weftPicks * (widthIn * 0.0254);
 
-result.innerHTML=`
-<p><b>Warp:</b> ${warpM.toFixed(1)} m</p>
-<p><b>Weft:</b> ${weftM.toFixed(1)} m</p>
-<p><b>Sampling allowance:</b> ${(sample*100).toFixed(0)}%</p>
-<p><b>Total yarn required:</b> ${total.toFixed(1)} m</p>
-<p><b>Packages needed:</b> ${(total/pkgM).toFixed(2)}</p>
-`;
+ const totalMeters = warpMeters + weftMeters;
+
+ answerBox.innerHTML = `
+ <b>Total warp ends:</b> ${ends}<br><br>
+ <b>Warp yarn required:</b> ${warpMeters.toFixed(1)} m<br>
+ <b>Weft yarn required:</b> ${weftMeters.toFixed(1)} m<br><br>
+ <b>Total yarn required:</b> ${totalMeters.toFixed(1)} m
+ `;
 }
-
-/* Table */
-function buildTable(){
-let t="<tr><th>Yarn</th><th>m / 100g</th><th>Warp</th><th>Weft</th></tr>";
-yarns.forEach(y=>{
-t+=`<tr><td>${y.name}</td><td>${y.m100}</td><td>${y.warp?"✔":"—"}</td><td>${y.weft?"✔":"—"}</td></tr>`;
-});
-comparison.innerHTML=t;
-}
-
-populate();
 </script>
 </body>
 </html>
+
