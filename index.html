@@ -2,252 +2,99 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Rigid Heddle Loom Planner</title>
+<title>Rigid Heddle Weaving Planner</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500&family=Libre+Baskerville:wght@400;700&display=swap" rel="stylesheet">
 
 <style>
-:root {
-  --bg: #F6F4F1;
-  --card: #FFFFFF;
-  --primary: #4A6F5E;
-  --secondary: #8FB3A2;
-  --accent: #C8B88A;
-  --text: #2E2E2E;
+:root{
+  --bg:#F6F4F1;
+  --card:#FFFFFF;
+  --primary:#4A6F5E;
+  --secondary:#4F7FA1;
+  --accent:#C8B88A;
+  --warp:#4A6F5E;
+  --weft:#4F7FA1;
+  --text:#2E2E2E;
 }
+body{margin:0;font-family:Inter,sans-serif;background:var(--bg);color:var(--text);}
+.container{max-width:1100px;margin:auto;padding:32px 20px;}
+h1,h2{font-family:"Libre Baskerville",serif;color:var(--primary);}
+.card{background:var(--card);padding:22px;border-radius:10px;margin-bottom:26px;box-shadow:0 2px 6px rgba(0,0,0,0.06);}
+label{font-size:.85rem;margin-top:12px;display:block;}
+select,input[type=number]{width:100%;padding:10px;border-radius:6px;border:1px solid #ddd;font-size:.95rem;}
+input[type=range]{width:100%;}
+button{margin-top:18px;padding:12px 20px;border-radius:6px;border:none;background:var(--primary);color:white;font-size:1rem;cursor:pointer;}
+button:hover{background:#3e5f51;}
+.small{font-size:.8rem;color:#666;}
+table{width:100%;border-collapse:collapse;margin-top:12px;}
+th,td{border:1px solid #ddd;padding:8px;font-size:.85rem;text-align:left;}
+th{background:#eee;}
+svg{max-width:100%;height:auto;margin-top:12px;border:1px solid #ddd;border-radius:6px;background:#fafafa;}
 
-body {
-  margin: 0;
-  font-family: Inter, sans-serif;
-  background: var(--bg);
-  color: var(--text);
-}
-
-.container {
-  max-width: 900px;
-  margin: auto;
-  padding: 32px 20px;
-}
-
-h1, h2 {
-  font-family: "Libre Baskerville", serif;
-  color: var(--primary);
-}
-
-.card {
-  background: var(--card);
-  padding: 20px;
-  border-radius: 10px;
-  margin-bottom: 24px;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.06);
-}
-
-label {
-  font-size: 0.85rem;
-  margin-top: 12px;
-  display: block;
-}
-
-select, input, textarea {
-  width: 100%;
-  padding: 10px;
-  border-radius: 6px;
-  border: 1px solid #ddd;
-  font-size: 0.95rem;
-}
-
-button {
-  margin-top: 16px;
-  padding: 12px 18px;
-  border-radius: 6px;
-  border: none;
-  font-size: 1rem;
-  background: var(--primary);
-  color: white;
-  cursor: pointer;
-}
-
-button:hover {
-  background: #3e5f51;
-}
-
-.small {
-  font-size: 0.8rem;
-  color: #666;
-}
-
-svg {
-  margin-top: 12px;
-}
-
-.footer {
-  text-align: center;
-  font-size: 0.8rem;
-  color: #777;
-  margin-top: 40px;
-}
-
-/* PRINT */
-@media print {
-  body { background: white; }
-  button { display: none; }
-  .card {
-    box-shadow: none;
-    border: 1px solid #ccc;
-    page-break-inside: avoid;
-  }
-  .footer { display: none; }
+@media print{
+ body{background:white;}
+ button{display:none;}
+ .card{box-shadow:none;border:1px solid #ccc;}
 }
 </style>
 </head>
 
 <body>
-
 <div class="container">
-<h1>Rigid Heddle Loom Planner</h1>
-<p class="small">For Ashford looms · Yarn-aware · Print-ready</p>
+<h1>Rigid Heddle Weaving Planner</h1>
 
-<!-- PROJECT -->
+<!-- YARN -->
 <div class="card">
-<h2>1. Project & Yarn</h2>
+<h2>1. Yarn Selection</h2>
 
-<label>Project Type</label>
-<select id="project" onchange="loadYarns()">
-  <option value="">Select project</option>
-  <option value="upholstery">Upholstery / Heavy Use</option>
-  <option value="garments">Garments & Wearables</option>
-  <option value="home">Home Fabrics</option>
-  <option value="sampler">Samplers / Study</option>
+<label>Warp Yarn</label>
+<select id="warpYarn"></select>
+
+<label>Weft Yarn</label>
+<select id="weftYarn"></select>
+
+<label>Package Size</label>
+<select id="package">
+  <option value="100">100 g ball</option>
+  <option value="250">250 g cone</option>
+  <option value="500">500 g cone</option>
+  <option value="1000">1 kg cone</option>
 </select>
-
-<label>Yarn</label>
-<select id="yarn" onchange="applyYarn()"></select>
-
-<label>Recommended Sett (EPI)</label>
-<input id="epi" type="number">
-
-<label>Suggested Ashford Reed</label>
-<input id="reed" readonly>
 </div>
 
 <!-- STRUCTURE -->
 <div class="card">
-<h2>2. Structure & Slot / Hole Planning</h2>
+<h2>2. Structure & Draft</h2>
 
 <label>Weave Structure</label>
-<select id="structure" onchange="drawThreading()">
+<select id="structure" onchange="updateDiagram()">
   <option value="plain">Plain Weave</option>
-  <option value="twill">Pickup Twill</option>
+  <option value="twill">2/2 Twill</option>
   <option value="krok">Krokbragd</option>
+  <option value="rep">Rep Weave</option>
+  <option value="lace">Lace Weave</option>
   <option value="double">Double Weave</option>
 </select>
 
-<div id="visual"></div>
-<p class="small">● hole · ▢ slot</p>
+<div id="diagram"></div>
+
+<p class="small">
+Diagrams show warp (green) and weft (blue) interaction for rigid heddle planning.
+</p>
 </div>
 
-<!-- CALCULATOR -->
+<!-- CALC -->
 <div class="card">
 <h2>3. Size & Yarn Calculation</h2>
 
-<label>Warp Width (inches)</label>
+<label>Finished Width (inches)</label>
 <input id="width" type="number">
 
-<label>Warp Length (inches)</label>
+<label>Finished Length (inches)</label>
 <input id="length" type="number">
 
-<label>Extra Allowance for Hand Manipulation (inches)</label>
-<input id="extra" type="number" value="12">
+<label>EPI (editable)</label>
+<input id="epi" type="number" value
 
-<label>Project Notes</label>
-<textarea rows="3"></textarea>
-
-<button onclick="calculate()">Calculate</button>
-<button onclick="window.print()">Save / Print PDF</button>
-
-<div id="result"></div>
-</div>
-
-<div class="footer">
-Built for rigid heddle weavers · Calm tools for thoughtful making
-</div>
-</div>
-
-<script>
-const yarns = {
-  upholstery: [
-    {name:"Cotton 5/2", epi:12, mpg:125},
-    {name:"DK Cotton", epi:10, mpg:200}
-  ],
-  garments: [
-    {name:"Cotton 8/2", epi:16, mpg:168},
-    {name:"Silk 16/2", epi:18, mpg:400},
-    {name:"Merino 16/2", epi:16, mpg:320}
-  ],
-  home: [
-    {name:"Cotton 8/2", epi:16, mpg:168},
-    {name:"Cottolin 8/2", epi:16, mpg:150},
-    {name:"Cotton 10/2", epi:18, mpg:210}
-  ],
-  sampler: [
-    {name:"Cotton 8/2", epi:14, mpg:168},
-    {name:"Sport Cotton", epi:12, mpg:300}
-  ]
-};
-
-let current = null;
-const reeds = [7.5, 10, 12.5, 15];
-
-function loadYarns() {
-  yarn.innerHTML = "";
-  yarns[project.value].forEach((y,i)=>{
-    let o=document.createElement("option");
-    o.value=i; o.text=y.name;
-    yarn.add(o);
-  });
-  applyYarn();
-}
-
-function applyYarn() {
-  current = yarns[project.value][yarn.value];
-  epi.value = current.epi;
-  reed.value = reeds.reduce((a,b)=>
-    Math.abs(b-current.epi)<Math.abs(a-current.epi)?b:a
-  ) + " dpi";
-}
-
-function drawThreading() {
-  const patterns={
-    plain:["●","▢","●","▢"],
-    twill:["●","▢","●","●","▢","●"],
-    krok:["▢","●","▢","●","●"],
-    double:["●","●","▢","▢"]
-  };
-  let x=20;
-  visual.innerHTML=
-  `<svg width="280" height="60">`+
-  patterns[structure.value].map(s=>{
-    let e=s==="●"
-      ?`<circle cx="${x}" cy="30" r="8" fill="#4A6F5E"/>`
-      :`<rect x="${x-8}" y="22" width="16" height="16" fill="#8FB3A2"/>`;
-    x+=30; return e;
-  }).join("")+`</svg>`;
-}
-
-function calculate() {
-  const ends = width.value * epi.value;
-  const meters = (Number(length.value)+Number(extra.value))*0.0254;
-  const grams = (meters*ends)/current.mpg;
-  result.innerHTML = `
-    <p><b>Total Warp Ends:</b> ${ends.toFixed(0)}</p>
-    <p><b>Estimated Warp Yarn:</b> ${grams.toFixed(1)} g</p>
-    <p class="small">Includes loom waste & hand-manipulation allowance.</p>
-  `;
-}
-
-drawThreading();
-</script>
-
-</body>
-</html>
